@@ -54,7 +54,7 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=200)
+                        lowercase=False, tokenizer=myTokenizer, max_features=600)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
 # print(count.vocabulary_)

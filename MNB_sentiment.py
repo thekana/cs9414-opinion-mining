@@ -54,7 +54,7 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=200)
+                        lowercase=False, tokenizer=myTokenizer, max_features=1000)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
 # print(count.vocabulary_)
@@ -69,8 +69,8 @@ X_test = X[1500:]
 y_train = Y[:1500]
 y_test = Y[1500:]
 
-testSetX = X_train
-testSetY = y_train
+testSetX = X_test
+testSetY = y_test
 start_time = time.time()
 clf = MultinomialNB()
 model = clf.fit(X_train, y_train)
