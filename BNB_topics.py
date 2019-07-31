@@ -13,7 +13,7 @@ df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
 # Perform shuffle
-df = shuffle(df)
+# df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -34,6 +34,8 @@ def remove_punctuation(sample):
     for char in sample:
         if char not in punctuations:
             no_punct = no_punct + char
+        else:
+            pass#no_punct = no_punct + " "
     return no_punct
 
 
@@ -78,5 +80,4 @@ print(precision_score(y_test, predicted_y, average='micro'))
 print(recall_score(y_test, predicted_y, average='micro'))
 print(f1_score(y_test, predicted_y, average='micro', labels=np.unique(predicted_y)))
 print(f1_score(y_test, predicted_y, average='macro', labels=np.unique(predicted_y)))
-print(classification_report(y_test, predicted_y,
-                            output_dict=False, labels=np.unique(predicted_y)))
+print(classification_report(y_test, predicted_y, labels=np.unique(predicted_y)))

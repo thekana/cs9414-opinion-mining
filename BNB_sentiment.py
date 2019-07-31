@@ -78,5 +78,4 @@ print(precision_score(y_test, predicted_y, average='micro'))
 print(recall_score(y_test, predicted_y, average='micro'))
 print(f1_score(y_test, predicted_y, average='micro', labels=np.unique(predicted_y)))
 print(f1_score(y_test, predicted_y, average='macro', labels=np.unique(predicted_y)))
-print(classification_report(y_test, predicted_y,
-                            output_dict=False, labels=np.unique(predicted_y)))
+print(classification_report(y_test, predicted_y, labels=np.unique(predicted_y)))

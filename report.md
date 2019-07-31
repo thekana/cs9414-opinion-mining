@@ -2,7 +2,13 @@
 
 1. (1 mark) Give simple descriptive statistics showing the frequency distributions for the sentiment and topic classes across the full dataset. What do you notice about the distribution?
 
-   ![](topic_freq.JPG =300x)
+   ![](topic_freq.JPG)
+
+   Statistics
+
+   | Variable  | N    | N*   | Mean  | SE Mean | StDev | Minimum | Q1   | Median | Q3    | Maximum |
+   | --------- | ---- | ---- | ----- | ------- | ----- | ------- | ---- | ------ | ----- | ------- |
+   | Frequency | 20   | 0    | 100.0 | 20.8    | 93.0  | 7.0     | 26.0 | 57.5   | 157.3 | 358.0   |
 
    
 
