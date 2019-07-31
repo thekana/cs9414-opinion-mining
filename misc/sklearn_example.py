@@ -22,7 +22,7 @@ print(count.vocabulary_)
 
 # Create feature matrix 
 X = bag_of_words.toarray()
-
+print(X)
 # Create target vector
 y = np.array(['A','A','B','A','B'])
 
