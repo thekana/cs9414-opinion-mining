@@ -30,7 +30,7 @@ def remove_URL(sample):
 
 def remove_punctuation(sample):
     """Remove punctuations from a sample string"""
-    punctuations = '''!"&'()*+,-./:;<=>?[\]^`{|}~'''
+    punctuations = r'''!"&'()*+,-./:;<=>?[\]^`{|}~'''
     no_punct = ""
     for char in sample:
         if char not in punctuations:
