@@ -8,6 +8,7 @@ from sklearn.naive_bayes import MultinomialNB, BernoulliNB
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 from sklearn import tree, metrics
 from sklearn.utils import shuffle
+import time
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
@@ -53,9 +54,9 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=200)
+                        lowercase=False, tokenizer=myTokenizer, max_features=100)
 bag_of_words = count.fit_transform(text_data)
-print(count.get_feature_names())
+# print(count.get_feature_names())
 # print(count.vocabulary_)
 X = bag_of_words.toarray()
 # creating target classes
@@ -68,16 +69,17 @@ X_test = X[1500:]
 y_train = Y[:1500]
 y_test = Y[1500:]
 # TODO: Ask about Decision Tree construction stops when a node covers 1% (20) or fewer examples.
+start_time = time.time()
 clf = tree.DecisionTreeClassifier(
-    criterion='entropy', random_state=0, max_depth=20)
+    criterion='entropy', random_state=0, min_samples_split=20)
 model = clf.fit(X_train, y_train)
-predicted_y = model.predict(X_test)
-print(y_test, predicted_y)
-print(model.predict_proba(X_test))
-print('Accuracy score:', accuracy_score(y_test, predicted_y))
-print(precision_score(y_test, predicted_y, average='micro'))
-print(recall_score(y_test, predicted_y, average='micro'))
-print(f1_score(y_test, predicted_y, average='micro', labels=np.unique(predicted_y)))
-print(f1_score(y_test, predicted_y, average='macro', labels=np.unique(predicted_y)))
-print(classification_report(y_test, predicted_y,
-                            output_dict=False, labels=np.unique(predicted_y)))
+predicted_y = model.predict(X_train)
+# print(y_test, predicted_y)
+# print(model.predict_proba(X_test))
+print('Accuracy score:', accuracy_score(y_train, predicted_y))
+# print(precision_score(y_test, predicted_y, average='micro'))
+# print(recall_score(y_test, predicted_y, average='micro'))
+# print(f1_score(y_test, predicted_y, average='micro'))
+# print(f1_score(y_test, predicted_y, average='macro'))
+print(classification_report(y_train, predicted_y))
+print("--- %s seconds ---" % (time.time() - start_time))
