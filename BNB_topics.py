@@ -14,7 +14,6 @@ df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
 # Perform shuffle
-# df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -24,8 +23,8 @@ for text in df.text:
 
 
 def remove_URL(sample):
-    """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", "", sample)
+    """Remove URLs from a sample string. Replace by space"""
+    return re.sub(r"http\S+", " ", sample)
 
 
 def remove_punctuation(sample):
