@@ -55,7 +55,7 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=1000)
+                        lowercase=False, tokenizer=myTokenizer, max_features=None)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
 # print(count.vocabulary_)
@@ -85,9 +85,9 @@ print(classification_report(y_test, y_pred))
 print('Accuracy score:', accuracy_score(y_test, y_pred))
 print("--- test set %s seconds ---" % (time.time() - start_time))
 
-start_time = time.time()
-y_pred = model.predict(X_train)
-print(classification_report(y_train, y_pred))
-print('Accuracy score:', accuracy_score(y_train, y_pred))
-print("--- train set %s seconds ---" %
-      (time.time() - start_time + training_time))
+# start_time = time.time()
+# y_pred = model.predict(X_train)
+# print(classification_report(y_train, y_pred))
+# print('Accuracy score:', accuracy_score(y_train, y_pred))
+# print("--- train set %s seconds ---" %
+#       (time.time() - start_time + training_time))

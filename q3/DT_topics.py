@@ -105,4 +105,4 @@ print("--- baseline %s seconds ---" %
       (time.time() - start_time))
 
 print("--- Against baseline ---")
-print(accuracy_score(y_pred_base, y_pred))
+print(classification_report(y_pred_base, y_pred))
