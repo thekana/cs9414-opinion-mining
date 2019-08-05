@@ -147,11 +147,11 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-print(classification_report(y_test, y_pred))
+# print(classification_report(y_test, y_pred))
 # print('Accuracy score:', accuracy_score(y_test, y_pred))
 testtime = time.time() - start_time
-plot_confusion_matrix(y_test, y_pred, classes=class_names,
-                      title='Confusion matrix, without normalization')
+# plot_confusion_matrix(y_test, y_pred, classes=class_names,
+#                      title='Confusion matrix, without normalization')
 test_report = classification_report(y_test, y_pred, output_dict=True)
 
 start_time = time.time()
