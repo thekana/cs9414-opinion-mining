@@ -1,20 +1,24 @@
-import time
-import pandas as pd
 import csv
-import sys
 import re
+import sys
+import time
+
 import numpy as np
+import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from sklearn import metrics, tree
+from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB, BernoulliNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from sklearn import tree, metrics
-from sklearn.utils import shuffle
+from sklearn.metrics import (accuracy_score, classification_report, f1_score,
+                             precision_score, recall_score)
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.utils import shuffle
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
-# Perform shuffle
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -24,8 +28,8 @@ for text in df.text:
 
 
 def remove_URL(sample):
-    """Remove URLs from a sample string. Replace by space"""
-    return re.sub(r"http\S+", " ", sample)
+    """Remove URLs from a sample string"""
+    return re.sub(r"http\S+", "", sample)
 
 
 def remove_punctuation(sample):
@@ -38,10 +42,33 @@ def remove_punctuation(sample):
     return no_punct
 
 
+def remove_stopwords_NLTK(sample):
+    """Remove stopwords using NLTK"""
+    stopWords = set(stopwords.words('english'))
+    words = myTokenizer(sample)
+    filteredText = ""
+    for word in words:
+        if word not in stopWords:
+            filteredText = filteredText + word + " "
+    return filteredText.rstrip()
+
+
+def porter_stem(sample):
+    """Stemming"""
+    words = myTokenizer(sample)
+    ps = PorterStemmer()
+    stemmed_text = ""
+    for word in words:
+        stemmed_text = stemmed_text + ps.stem(word) + " "
+    return stemmed_text.rstrip()
+
+
 def myPreprocessor(sample):
     """Customized preprocessor"""
     sample = remove_URL(sample)
+    sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
+    sample = porter_stem(sample)
     return sample
 
 
@@ -54,7 +81,7 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=None)
+                        lowercase=False, tokenizer=myTokenizer, max_features=200)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
 print(len(count.vocabulary_))
@@ -73,7 +100,7 @@ model = clf.fit(X_train, y_train)
 training_time = (time.time() - start_time)
 
 # print(y_test, y_pred)
-print(model.predict_proba(X_test)[0])
+# print(model.predict_proba(X_test)[0])
 # print(precision_score(y_test, y_pred, average='micro'))
 # print(recall_score(y_test, y_pred, average='micro'))
 # print(f1_score(y_test, y_pred, average='micro'))

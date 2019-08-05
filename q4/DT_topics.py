@@ -5,6 +5,8 @@ import time
 
 import numpy as np
 import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from sklearn import metrics, tree
 from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction.text import CountVectorizer
@@ -13,13 +15,10 @@ from sklearn.metrics import (accuracy_score, classification_report, f1_score,
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import BernoulliNB, MultinomialNB
 from sklearn.utils import shuffle
-from nltk.corpus import stopwords
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
-# Perform shuffle
-# df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -51,7 +50,17 @@ def remove_stopwords_NLTK(sample):
     for word in words:
         if word not in stopWords:
             filteredText = filteredText + word + " "
-    return filteredText
+    return filteredText.rstrip()
+
+
+def porter_stem(sample):
+    """Stemming"""
+    words = myTokenizer(sample)
+    ps = PorterStemmer()
+    stemmed_text = ""
+    for word in words:
+        stemmed_text = stemmed_text + ps.stem(word) + " "
+    return stemmed_text.rstrip()
 
 
 def myPreprocessor(sample):
@@ -59,6 +68,7 @@ def myPreprocessor(sample):
     sample = remove_URL(sample)
     sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
+    sample = porter_stem(sample)
     return sample
 
 
