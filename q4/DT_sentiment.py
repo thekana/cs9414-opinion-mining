@@ -10,11 +10,13 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn import tree, metrics
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+from sklearn.dummy import DummyClassifier
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
 # Perform shuffle
+df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -24,13 +26,13 @@ for text in df.text:
 
 
 def remove_URL(sample):
-    """Remove URLs from a sample string. Replace by space"""
-    return re.sub(r"http\S+", " ", sample)
+    """Remove URLs from a sample string"""
+    return re.sub(r"http\S+", "", sample)
 
 
 def remove_punctuation(sample):
     """Remove punctuations from a sample string"""
-    punctuations = r'''!"&'()*+,-./:;<=>?[\]^`{|}~'''
+    punctuations = '''!"&'()*+,-./:;<=>?[\]^`{|}~'''
     no_punct = ""
     for char in sample:
         if char not in punctuations:
@@ -61,14 +63,17 @@ bag_of_words = count.fit_transform(text_data)
 X = bag_of_words.toarray()
 # creating target classes
 Y = np.array([])
-for text in df.id:
+for text in df.sentiment:
     Y = np.append(Y, text)
+
 # First 1500 for training set, last 500 for test set
 X_train, X_test, y_train, y_test = train_test_split(
     X, Y, test_size=0.25, shuffle=False)
 
 start_time = time.time()
-clf = BernoulliNB()
+# Decision Tree construction stops when a node covers 1 % (20) or fewer examples.
+clf = tree.DecisionTreeClassifier(
+    criterion='entropy', random_state=0, min_samples_leaf=0.01)
 model = clf.fit(X_train, y_train)
 training_time = (time.time() - start_time)
 
@@ -85,8 +90,19 @@ print('Accuracy score:', accuracy_score(y_test, y_pred))
 print("--- test set %s seconds ---" % (time.time() - start_time))
 
 start_time = time.time()
-y_pred = model.predict(X_train)
-print(classification_report(y_train, y_pred))
-print('Accuracy score:', accuracy_score(y_train, y_pred))
-print("--- train set %s seconds ---" %
-      (time.time() - start_time + training_time))
+# y_pred = model.predict(X_train)
+# print(classification_report(y_train, y_pred))
+# print('Accuracy score:', accuracy_score(y_train, y_pred))
+# print("--- train set %s seconds ---" %
+#       (time.time() - start_time + training_time))
+
+baselineClf = DummyClassifier(strategy="most_frequent")
+baseline = baselineClf.fit(X_train, y_train)
+y_pred_base = baseline.predict(X_test)
+print(classification_report(y_test, y_pred_base))
+print('Accuracy score:', accuracy_score(y_test, y_pred_base))
+print("--- baseline %s seconds ---" %
+      (time.time() - start_time))
+
+print("--- Against baseline ---")
+print(accuracy_score(y_pred_base, y_pred))

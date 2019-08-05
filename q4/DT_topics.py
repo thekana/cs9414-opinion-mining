@@ -1,20 +1,25 @@
-import time
-import pandas as pd
 import csv
-import sys
 import re
+import sys
+import time
+
 import numpy as np
+import pandas as pd
+from sklearn import metrics, tree
+from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB, BernoulliNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from sklearn import tree, metrics
-from sklearn.utils import shuffle
+from sklearn.metrics import (accuracy_score, classification_report, f1_score,
+                             precision_score, recall_score)
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.utils import shuffle
+from nltk.corpus import stopwords
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
 # Perform shuffle
+# df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -24,8 +29,8 @@ for text in df.text:
 
 
 def remove_URL(sample):
-    """Remove URLs from a sample string. Replace by space"""
-    return re.sub(r"http\S+", " ", sample)
+    """Remove URLs from a sample string"""
+    return re.sub(r"http\S+", "", sample)
 
 
 def remove_punctuation(sample):
@@ -38,9 +43,21 @@ def remove_punctuation(sample):
     return no_punct
 
 
+def remove_stopwords_NLTK(sample):
+    """Remove stopwords using NLTK"""
+    stopWords = set(stopwords.words('english'))
+    words = myTokenizer(sample)
+    filteredText = ""
+    for word in words:
+        if word not in stopWords:
+            filteredText = filteredText + word + " "
+    return filteredText
+
+
 def myPreprocessor(sample):
     """Customized preprocessor"""
     sample = remove_URL(sample)
+    sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
     return sample
 
@@ -55,20 +72,25 @@ def myTokenizer(sample):
 
 count = CountVectorizer(preprocessor=myPreprocessor,
                         lowercase=False, tokenizer=myTokenizer, max_features=200)
+
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
 # print(count.vocabulary_)
+
 X = bag_of_words.toarray()
 # creating target classes
 Y = np.array([])
 for text in df.id:
     Y = np.append(Y, text)
+
 # First 1500 for training set, last 500 for test set
 X_train, X_test, y_train, y_test = train_test_split(
     X, Y, test_size=0.25, shuffle=False)
 
 start_time = time.time()
-clf = BernoulliNB()
+# Decision Tree construction stops when a node covers 1 % (20) or fewer examples.
+clf = tree.DecisionTreeClassifier(
+    criterion='entropy', random_state=0, min_samples_leaf=0.01)
 model = clf.fit(X_train, y_train)
 training_time = (time.time() - start_time)
 
@@ -84,9 +106,20 @@ print(classification_report(y_test, y_pred))
 print('Accuracy score:', accuracy_score(y_test, y_pred))
 print("--- test set %s seconds ---" % (time.time() - start_time))
 
-start_time = time.time()
-y_pred = model.predict(X_train)
-print(classification_report(y_train, y_pred))
-print('Accuracy score:', accuracy_score(y_train, y_pred))
-print("--- train set %s seconds ---" %
-      (time.time() - start_time + training_time))
+# start_time = time.time()
+# y_pred = model.predict(X_train)
+# print(classification_report(y_train, y_pred))
+# print('Accuracy score:', accuracy_score(y_train, y_pred))
+# print("--- train set %s seconds ---" %
+#       (time.time() - start_time + training_time))
+
+# baselineClf = DummyClassifier(strategy="most_frequent")
+# baseline = baselineClf.fit(X_train, y_train)
+# y_pred_base = baseline.predict(X_test)
+# print(classification_report(y_test, y_pred_base))
+# print('Accuracy score:', accuracy_score(y_test, y_pred_base))
+# print("--- baseline %s seconds ---" %
+#       (time.time() - start_time))
+
+# print("--- Against baseline ---")
+# print(classification_report(y_pred_base, y_pred))
