@@ -55,10 +55,10 @@ def myTokenizer(sample):
 
 
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=1000)
+                        lowercase=False, tokenizer=myTokenizer, max_features=200)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
-# print(count.vocabulary_)
+print(len(count.vocabulary_))
 X = bag_of_words.toarray()
 # creating target classes
 Y = np.array([])
