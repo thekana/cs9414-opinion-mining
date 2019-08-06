@@ -9,5 +9,6 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 analyser = SentimentIntensityAnalyzer()
 sentence = "The phone is super bad."
-score = analyser.polarity_scores(sentence)
+score = analyser.polarity_scores(
+    'Liberals might not be talking about #Parakeelia MSM might not be talking about #Parakeelia Voters are very interested in #Parakeelia #auspol')
 print(score)

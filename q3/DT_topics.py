@@ -1,4 +1,4 @@
-import time
+from sklearn.dummy import DummyClassifier
 import pandas as pd
 import csv
 import sys
@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from sklearn import tree, metrics
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+import time
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
@@ -54,28 +55,25 @@ def myTokenizer(sample):
     return new_words
 
 
-try:
-    size = int(sys.argv[1])
-except IndexError:
-    size = None
-
 count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=size)
+                        lowercase=False, tokenizer=myTokenizer, max_features=200)
 bag_of_words = count.fit_transform(text_data)
 # print(count.get_feature_names())
-size = len(count.vocabulary_)
-print(len(count.vocabulary_))
+# print(count.vocabulary_)
 X = bag_of_words.toarray()
 # creating target classes
 Y = np.array([])
-for text in df.sentiment:
+for text in df.id:
     Y = np.append(Y, text)
+
 # First 1500 for training set, last 500 for test set
 X_train, X_test, y_train, y_test = train_test_split(
     X, Y, test_size=0.25, shuffle=False)
 
 start_time = time.time()
-clf = MultinomialNB()
+# Decision Tree construction stops when a node covers 1 % (20) or fewer examples.
+clf = tree.DecisionTreeClassifier(
+    criterion='entropy', random_state=0, min_samples_leaf=0.01)
 model = clf.fit(X_train, y_train)
 training_time = (time.time() - start_time)
 
@@ -87,31 +85,24 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-# print(classification_report(y_test, y_pred))
-# print('Accuracy score:', accuracy_score(y_test, y_pred))
-testtime = time.time() - start_time
-test_report = classification_report(y_test, y_pred, output_dict=True)
+print(classification_report(y_test, y_pred))
+print('Accuracy score:', accuracy_score(y_test, y_pred))
+print("--- test set %s seconds ---" % (time.time() - start_time))
 
 start_time = time.time()
-y_pred = model.predict(X_train)
+# y_pred = model.predict(X_train)
 # print(classification_report(y_train, y_pred))
 # print('Accuracy score:', accuracy_score(y_train, y_pred))
-trainingtime = (time.time() - start_time + training_time)
+# print("--- train set %s seconds ---" %
+#       (time.time() - start_time + training_time))
 
+baselineClf = DummyClassifier(strategy="most_frequent")
+baseline = baselineClf.fit(X_train, y_train)
+y_pred_base = baseline.predict(X_test)
+print(classification_report(y_test, y_pred_base))
+print('Accuracy score:', accuracy_score(y_test, y_pred_base))
+print("--- baseline %s seconds ---" %
+      (time.time() - start_time))
 
-train_report = classification_report(y_train, y_pred, output_dict=True)
-
-metric_list = ['precision', 'recall', 'f1-score']
-avg_list = ['micro avg', 'macro avg', 'weighted avg']
-
-test_str_output = "MNB_sentiment\t"+f"{size}\t"+"test\t"
-train_str_output = "MNB_sentiment\t"+f"{size}\t"+"train\t"
-
-for m in metric_list:
-    for a in avg_list:
-        test_str_output = test_str_output + f"{test_report[a][m]:.3f}\t"
-        train_str_output = train_str_output + f"{train_report[a][m]:.3f}\t"
-test_str_output += f"{testtime:.4f}"
-train_str_output += f"{trainingtime:.4f}"
-print(test_str_output.rstrip())
-print(train_str_output.rstrip())
+print("--- Against baseline ---")
+print(classification_report(y_pred_base, y_pred))
