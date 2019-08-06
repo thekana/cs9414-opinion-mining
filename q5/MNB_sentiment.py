@@ -5,6 +5,8 @@ import time
 
 import numpy as np
 import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from sklearn import metrics, tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import (accuracy_score, classification_report, f1_score,
@@ -41,10 +43,33 @@ def remove_punctuation(sample):
     return no_punct
 
 
+def remove_stopwords_NLTK(sample):
+    """Remove stopwords using NLTK"""
+    stopWords = set(stopwords.words('english'))
+    words = myTokenizer(sample)
+    filteredText = ""
+    for word in words:
+        if word not in stopWords:
+            filteredText = filteredText + word + " "
+    return filteredText.rstrip()
+
+
+def porter_stem(sample):
+    """Stemming"""
+    words = myTokenizer(sample)
+    ps = PorterStemmer()
+    stemmed_text = ""
+    for word in words:
+        stemmed_text = stemmed_text + ps.stem(word) + " "
+    return stemmed_text.rstrip()
+
+
 def myPreprocessor(sample):
     """Customized preprocessor"""
     sample = remove_URL(sample)
+    sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
+    sample = porter_stem(sample)
     return sample
 
 
