@@ -1,21 +1,23 @@
-import time
-import pandas as pd
 import csv
-import sys
 import re
+import sys
+import time
+
 import numpy as np
+import pandas as pd
+from sklearn import metrics, tree
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB, BernoulliNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from sklearn import tree, metrics
-from sklearn.utils import shuffle
+from sklearn.metrics import (accuracy_score, classification_report, f1_score,
+                             precision_score, recall_score)
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.utils import shuffle
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
+# Remove neutral tweets
+df = df[df.sentiment != 'neutral']
 
-# Perform shuffle
-# df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
@@ -70,9 +72,13 @@ X = bag_of_words.toarray()
 Y = np.array([])
 for text in df.sentiment:
     Y = np.append(Y, text)
-# First 1500 for training set, last 500 for test set
-X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.25, shuffle=False)
+
+# First 1072 for training set, leftover for test set
+
+X_train = X[:1072]
+X_test = X[1072:]
+y_train = Y[:1072]
+y_test = Y[1072:]
 
 start_time = time.time()
 clf = MultinomialNB()
@@ -87,14 +93,14 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-# print(classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 # print('Accuracy score:', accuracy_score(y_test, y_pred))
 testtime = time.time() - start_time
 test_report = classification_report(y_test, y_pred, output_dict=True)
 
 start_time = time.time()
 y_pred = model.predict(X_train)
-# print(classification_report(y_train, y_pred))
+print(classification_report(y_train, y_pred))
 # print('Accuracy score:', accuracy_score(y_train, y_pred))
 trainingtime = (time.time() - start_time + training_time)
 
