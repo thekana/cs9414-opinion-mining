@@ -14,8 +14,6 @@ from sklearn.model_selection import train_test_split
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
-# Perform shuffle
-df = shuffle(df)
 text_data = np.array([])
 # Read tweets
 for text in df.text:
