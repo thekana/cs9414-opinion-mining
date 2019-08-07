@@ -15,10 +15,11 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.stem.snowball import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
+from sklearn import metrics, tree
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB
 import random
 import math
 
@@ -231,6 +232,9 @@ def classifierCost(n):
     X_train, X_test, y_train, y_test = train_test_split(
         X, Y, test_size=0.25, shuffle=False)
     clf = MultinomialNB(alpha=1.0, fit_prior=True)
+    # clf = tree.DecisionTreeClassifier(
+    #     criterion='entropy', random_state=0, min_samples_leaf=20)
+    # clf = BernoulliNB(alpha=1.0, fit_prior=True)
     model = clf.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     report = classification_report(y_test, y_pred, output_dict=True)
