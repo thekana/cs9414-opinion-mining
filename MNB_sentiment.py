@@ -28,7 +28,7 @@ for text in df.text:
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", "", sample)
+    return re.sub(r"http\S+", " ", sample)
 
 
 def remove_punctuation(sample):
@@ -89,14 +89,14 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-# print(classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 # print('Accuracy score:', accuracy_score(y_test, y_pred))
 testtime = time.time() - start_time
 test_report = classification_report(y_test, y_pred, output_dict=True)
 
 start_time = time.time()
 y_pred = model.predict(X_train)
-# print(classification_report(y_train, y_pred))
+print(classification_report(y_train, y_pred))
 # print('Accuracy score:', accuracy_score(y_train, y_pred))
 trainingtime = (time.time() - start_time + training_time)
 

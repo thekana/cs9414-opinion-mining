@@ -1,3 +1,4 @@
+from sklearn.dummy import DummyClassifier
 import csv
 import re
 import sys
@@ -148,3 +149,9 @@ test_str_output += f"{testtime:.4f}"
 train_str_output += f"{trainingtime:.4f}"
 print(test_str_output.rstrip())
 print(train_str_output.rstrip())
+
+baselineClf = DummyClassifier(strategy="most_frequent")
+baseline = baselineClf.fit(X_train, y_train)
+y_pred_base = baseline.predict(X_test)
+print(classification_report(y_test, y_pred_base))
+print('Accuracy score:', accuracy_score(y_test, y_pred_base))
