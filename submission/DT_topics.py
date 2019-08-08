@@ -10,8 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 df_data = pd.read_csv(sys.argv[1], sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                       header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 df_test = pd.read_csv(sys.argv[2], sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
-                      header=None, names=["instance", "text"])
-
+                      header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 """ Functions for text pre-processing """
 
 
