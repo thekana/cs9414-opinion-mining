@@ -186,7 +186,7 @@ def lemmy(sample):
     words = [w for w in sample.split(' ') if len(w) >= 2]
     lemmed_text = ""
     for word in words:
-        lemmed_text = lemmed_text + lemmatizer.lemmatize(word) + " "
+        lemmed_text = lemmed_text + lemmatizer.lemmatize(word, pos='v') + " "
     return lemmed_text.rstrip()
 
 
@@ -205,6 +205,7 @@ def myPreprocessor(sample):
     sample = sample.lower()
     sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
+    sample = lemmy(sample)
     sample = porter_stem(sample)
     return sample
 
@@ -229,6 +230,8 @@ def classifierCost(n):
     print("Trying: ", n[0], n[1], n[2], n[3])
     count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
                             max_features=round(n[0]), ngram_range=(1, round(n[1])), min_df=round(n[2]))
+    # count = TfidfVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
+    #                         max_features=round(n[0]), ngram_range=(1, round(n[1])), min_df=round(n[2]), use_idf=True)
     X_train = count.fit_transform(X_train_).toarray()
     X_test = count.transform(X_test_).toarray()
     clf = MultinomialNB(alpha=n[3], fit_prior=True)
@@ -243,7 +246,8 @@ def classifierCost(n):
     return 1 - 2*(report['micro avg']['f1-score']*report1['micro avg']['f1-score'])/(report['micro avg']['f1-score']+report1['micro avg']['f1-score'])
 
 
-initial = [600, 3, 5, 0.5]               # initial starting location [x1,x2...]
+# initial starting location [x1,x2...]
+initial = [1000, 3, 5, 0.5]
 # input bounds [(x1_min,x1_max),(x2_min,x2_max)...]
-bounds = [(400, 1200), (2, 3), (0, 5), (0, 1)]
+bounds = [(800, 1200), (2, 3), (0, 5), (0, 1)]
 PSO(classifierCost, initial, bounds, num_particles=10, maxiter=10)
