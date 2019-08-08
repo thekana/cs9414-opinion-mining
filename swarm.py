@@ -136,10 +136,6 @@ class PSO():
 # --- RUN ----------------------------------------------------------------------+
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str, encoding='utf-8',
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
-text_data = np.array([])
-# Read tweets
-for text in df.text:
-    text_data = np.append(text_data, text)
 
 
 def remove_URL(sample):
@@ -215,6 +211,11 @@ def myPreprocessor(sample):
     return sample
 
 
+""" Data creation """
+text_data = np.array([])
+# Read tweets
+for text in df.text:
+    text_data = np.append(text_data, text)
 # creating target classes
 Y = np.array([])
 for text in df.id:
@@ -222,15 +223,15 @@ for text in df.id:
 
 
 def classifierCost(n):
+    # First 1500 for training set, last 500 for test set
+    X_train, X_test, y_train, y_test = train_test_split(
+        text_data, Y, test_size=0.25, shuffle=False)
+
     print("Trying: ", n[0], n[1], n[2])
     count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
                             max_features=round(n[0]), ngram_range=(1, round(n[1])), min_df=round(n[2]))
-    bag_of_words = count.fit_transform(text_data)
-    X = bag_of_words.toarray()
-
-    # First 1500 for training set, last 500 for test set
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, Y, test_size=0.25, shuffle=False)
+    X_train = count.fit_transform(X_train).toarray()
+    X_test = count.transform(X_test).toarray()
     clf = MultinomialNB(alpha=1.0, fit_prior=True)
     # clf = tree.DecisionTreeClassifier(
     #     criterion='entropy', random_state=0, min_samples_leaf=20)
