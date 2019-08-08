@@ -100,10 +100,10 @@ class PSO():
         for i in range(0, num_particles):
             if i > num_particles/2:
                 x = [random.randint(x0[0], bounds[0][1]), random.randint(
-                    x0[1], bounds[1][1]), random.randint(x0[2], bounds[2][1])]
+                    x0[1], bounds[1][1]), random.randint(x0[2], bounds[2][1]), random.random()]
             else:
                 x = [random.randint(bounds[0][0], x0[0]), random.randint(
-                    bounds[1][0], x0[1]), random.randint(bounds[2][0], x0[2])]
+                    bounds[1][0], x0[1]), random.randint(bounds[2][0], x0[2]), random.random()]
             swarm.append(Particle(x))
 
         # begin optimization loop
@@ -156,7 +156,7 @@ def myTokenizer(sample):
     new_words = []
     words = sample.split(' ')
     new_words = [word for word in words if len(word) >= 2 and not word.isdigit() and not word.startswith(
-        '#aus') and not word.startswith('au') and not bool(re.search(r'\d', word))]
+        '#aus') and not word.startswith('au')]  # and not bool(re.search(r'\d', word))]
     return new_words
 
 
@@ -205,8 +205,6 @@ def myPreprocessor(sample):
     sample = sample.lower()
     sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
-#     sample = lemmy(sample)
-#     sample = snowball(sample)
     sample = porter_stem(sample)
     return sample
 
@@ -221,21 +219,22 @@ Y = np.array([])
 for text in df.id:
     Y = np.append(Y, text)
 
+# First 1500 for training set, last 500 for test set
+X_train_, X_test_, y_train, y_test = train_test_split(
+    text_data, Y, test_size=0.25, shuffle=False)
+
 
 def classifierCost(n):
-    # First 1500 for training set, last 500 for test set
-    X_train, X_test, y_train, y_test = train_test_split(
-        text_data, Y, test_size=0.25, shuffle=False)
 
-    print("Trying: ", n[0], n[1], n[2])
+    print("Trying: ", n[0], n[1], n[2], n[3])
     count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
                             max_features=round(n[0]), ngram_range=(1, round(n[1])), min_df=round(n[2]))
-    X_train = count.fit_transform(X_train).toarray()
-    X_test = count.transform(X_test).toarray()
-    clf = MultinomialNB(alpha=1.0, fit_prior=True)
+    X_train = count.fit_transform(X_train_).toarray()
+    X_test = count.transform(X_test_).toarray()
+    clf = MultinomialNB(alpha=n[3], fit_prior=True)
     # clf = tree.DecisionTreeClassifier(
     #     criterion='entropy', random_state=0, min_samples_leaf=20)
-    # clf = BernoulliNB(alpha=1.0, fit_prior=True)
+    #clf = BernoulliNB(alpha=1.0, fit_prior=True)
     model = clf.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     report = classification_report(y_test, y_pred, output_dict=True)
@@ -244,7 +243,7 @@ def classifierCost(n):
     return 1 - 2*(report['micro avg']['f1-score']*report1['micro avg']['f1-score'])/(report['micro avg']['f1-score']+report1['micro avg']['f1-score'])
 
 
-initial = [600, 3, 5]               # initial starting location [x1,x2...]
+initial = [600, 3, 5, 0.5]               # initial starting location [x1,x2...]
 # input bounds [(x1_min,x1_max),(x2_min,x2_max)...]
-bounds = [(50, 2000), (2, 4), (0, 10)]
+bounds = [(400, 1200), (2, 3), (0, 5), (0, 1)]
 PSO(classifierCost, initial, bounds, num_particles=10, maxiter=10)
