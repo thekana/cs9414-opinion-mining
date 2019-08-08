@@ -16,19 +16,12 @@ from sklearn.utils import shuffle
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
-# Perform shuffle
-# df = shuffle(df)
-text_data = np.array([])
-# Read tweets
-for text in df.text:
-    text_data = np.append(text_data, text)
-
 """ Functions for text pre-processing """
 
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", "", sample)
+    return re.sub(r"http\S+", " ", sample)
 
 
 def remove_punctuation(sample):
@@ -61,13 +54,11 @@ try:
 except IndexError:
     size = None
 
-count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=size)
-bag_of_words = count.fit_transform(text_data)
-# print(count.get_feature_names())
-size = len(count.vocabulary_)
-print(len(count.vocabulary_))
-X = bag_of_words.toarray()
+""" Data creation """
+text_data = np.array([])
+# Read tweets
+for text in df.text:
+    text_data = np.append(text_data, text)
 # creating target classes
 Y = np.array([])
 for text in df.sentiment:
@@ -75,7 +66,22 @@ for text in df.sentiment:
 
 # First 1500 for training set, last 500 for test set
 X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.25, shuffle=False)
+    text_data, Y, test_size=0.25, shuffle=False)
+
+count = CountVectorizer(preprocessor=myPreprocessor,
+                        lowercase=False, tokenizer=myTokenizer, max_features=size)
+# bag_of_words = count.fit_transform(text_data)
+# print(count.get_feature_names())
+# size = len(count.vocabulary_)
+# print(len(count.vocabulary_))
+# X = bag_of_words.toarray()
+# creating target classes
+X_train = count.fit_transform(X_train).toarray()
+print("----------Train vector------------", len(X_train))
+print(X_train)
+X_test = count.transform(X_test).toarray()
+print("----------Test vector------------", len(X_test))
+print(X_test)
 
 start_time = time.time()
 # Decision Tree construction stops when a node covers 1 % (20) or fewer examples.
