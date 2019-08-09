@@ -1,6 +1,7 @@
 import csv
 import re
 import sys
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -8,6 +9,8 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+
+warnings.filterwarnings('ignore')
 
 df_data = pd.read_csv(sys.argv[1], sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                       header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
