@@ -9,6 +9,8 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import RandomForestClassifier
+
 
 warnings.filterwarnings('ignore')
 
@@ -97,7 +99,8 @@ count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
 X_train = count.fit_transform(train_data).toarray()
 X_test = count.transform(test_data).toarray()
 
-clf = MultinomialNB(alpha=0.75)
+clf = RandomForestClassifier(bootstrap=True, n_estimators=400, max_depth=60,
+                             random_state=0, max_features='auto', min_samples_leaf=2, min_samples_split=5)
 model = clf.fit(X_train, Y)
 
 
