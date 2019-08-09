@@ -21,12 +21,12 @@ df_test = pd.read_csv(sys.argv[2], sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", " ", sample)
+    return re.sub(r"http\S+", "", sample)
 
 
 def remove_punctuation(sample):
     """Remove punctuations from a sample string"""
-    return re.sub(r'[^\w\s\&\#\@\$\%\_]', '', sample)
+    return re.sub(r'[^\w\s\&\#\@]', '', sample)
 
 
 def myPreprocessor(sample):
@@ -61,7 +61,8 @@ test_data = np.array([])
 for text in df_test.text:
     test_data = np.append(test_data, text)
 
-count = CountVectorizer(preprocessor=myPreprocessor, tokenizer = myTokenizer, max_features=1400, ngram_range=(1,1), min_df = 1, max_df = 0.4)
+count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
+                        max_features=1400, ngram_range=(1, 1), min_df=1, max_df=0.4)
 X_train = count.fit_transform(train_data).toarray()
 X_test = count.transform(test_data).toarray()
 
