@@ -1,35 +1,31 @@
-from sklearn.utils.multiclass import unique_labels
-from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
-import time
-import pandas as pd
 import csv
-import sys
 import re
+import sys
+import time
+
+import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from sklearn import metrics, tree
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB, BernoulliNB
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
-from sklearn import tree, metrics
-from sklearn.utils import shuffle
+from sklearn.metrics import (accuracy_score, classification_report,
+                             confusion_matrix, f1_score, precision_score,
+                             recall_score)
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import BernoulliNB, MultinomialNB
+from sklearn.utils import shuffle
+from sklearn.utils.multiclass import unique_labels
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
 
-# Perform shuffle
-# df = shuffle(df)
-text_data = np.array([])
-# Read tweets
-for text in df.text:
-    text_data = np.append(text_data, text)
 
 """ Functions for text pre-processing """
 
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", "", sample)
+    return re.sub(r"http\S+", " ", sample)
 
 
 def remove_punctuation(sample):
@@ -119,20 +115,33 @@ try:
 except IndexError:
     size = None
 
-count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=size)
-bag_of_words = count.fit_transform(text_data)
-# print(count.get_feature_names())
-size = len(count.vocabulary_)
-print(len(count.vocabulary_))
-X = bag_of_words.toarray()
+""" Data creation """
+text_data = np.array([])
+# Read tweets
+for text in df.text:
+    text_data = np.append(text_data, text)
 # creating target classes
 Y = np.array([])
 for text in df.id:
     Y = np.append(Y, int(text)-10000)
+
 # First 1500 for training set, last 500 for test set
 X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.25, shuffle=False)
+    text_data, Y, test_size=0.25, shuffle=False)
+
+count = CountVectorizer(preprocessor=myPreprocessor,
+                        lowercase=False, tokenizer=myTokenizer, max_features=size)
+X_train = count.fit_transform(X_train).toarray()
+print("----------Train vector------------")
+print(X_train)
+X_test = count.transform(X_test).toarray()
+print("----------Test vector------------")
+print(X_test)
+# print(count.get_feature_names())
+# size = len(count.vocabulary_)
+# print(len(count.vocabulary_))
+# X = bag_of_words.toarray()
+
 
 start_time = time.time()
 clf = MultinomialNB()
@@ -147,11 +156,11 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-print(classification_report(y_test, y_pred))
+# print(classification_report(y_test, y_pred))
 # print('Accuracy score:', accuracy_score(y_test, y_pred))
 testtime = time.time() - start_time
-plot_confusion_matrix(y_test, y_pred, classes=class_names,
-                      title='Confusion matrix, without normalization')
+# plot_confusion_matrix(y_test, y_pred, classes=class_names,
+#                       title='Confusion matrix, without normalization')
 test_report = classification_report(y_test, y_pred, output_dict=True)
 
 start_time = time.time()

@@ -5,6 +5,8 @@ import time
 
 import numpy as np
 import pandas as pd
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 from sklearn import metrics, tree
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import (accuracy_score, classification_report, f1_score,
@@ -15,14 +17,20 @@ from sklearn.utils import shuffle
 
 df = pd.read_csv('dataset.tsv', sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
                  header=None, names=["instance", "text", "id", "sentiment", "is_sarcastic"])
+# Remove neutral tweets
+df = df[df.sentiment != 'neutral']
 
+text_data = np.array([])
+# Read tweets
+for text in df.text:
+    text_data = np.append(text_data, text)
 
 """ Functions for text pre-processing """
 
 
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", " ", sample)
+    return re.sub(r"http\S+", "", sample)
 
 
 def remove_punctuation(sample):
@@ -35,10 +43,33 @@ def remove_punctuation(sample):
     return no_punct
 
 
+def remove_stopwords_NLTK(sample):
+    """Remove stopwords using NLTK"""
+    stopWords = set(stopwords.words('english'))
+    words = myTokenizer(sample)
+    filteredText = ""
+    for word in words:
+        if word not in stopWords:
+            filteredText = filteredText + word + " "
+    return filteredText.rstrip()
+
+
+def porter_stem(sample):
+    """Stemming"""
+    words = myTokenizer(sample)
+    ps = PorterStemmer()
+    stemmed_text = ""
+    for word in words:
+        stemmed_text = stemmed_text + ps.stem(word) + " "
+    return stemmed_text.rstrip()
+
+
 def myPreprocessor(sample):
     """Customized preprocessor"""
     sample = remove_URL(sample)
+    sample = remove_stopwords_NLTK(sample)
     sample = remove_punctuation(sample)
+    sample = porter_stem(sample)
     return sample
 
 
@@ -55,32 +86,27 @@ try:
 except IndexError:
     size = None
 
-""" Data creation """
-text_data = np.array([])
-# Read tweets
-for text in df.text:
-    text_data = np.append(text_data, text)
+count = CountVectorizer(preprocessor=myPreprocessor,
+                        lowercase=False, tokenizer=myTokenizer, max_features=size)
+bag_of_words = count.fit_transform(text_data)
+# print(count.get_feature_names())
+size = len(count.vocabulary_)
+print(len(count.vocabulary_))
+X = bag_of_words.toarray()
 # creating target classes
 Y = np.array([])
 for text in df.sentiment:
     Y = np.append(Y, text)
 
-# First 1500 for training set, last 500 for test set
-X_train, X_test, y_train, y_test = train_test_split(
-    text_data, Y, test_size=0.25, shuffle=False)
+# First 1072 for training set, leftover for test set
 
-count = CountVectorizer(preprocessor=myPreprocessor,
-                        lowercase=False, tokenizer=myTokenizer, max_features=size)
-
-X_train = count.fit_transform(X_train).toarray()
-print("----------Train vector------------", len(X_train))
-print(X_train)
-X_test = count.transform(X_test).toarray()
-print("----------Test vector------------", len(X_test))
-print(X_test)
+X_train = X[:1072]
+X_test = X[1072:]
+y_train = Y[:1072]
+y_test = Y[1072:]
 
 start_time = time.time()
-clf = BernoulliNB()
+clf = MultinomialNB()
 model = clf.fit(X_train, y_train)
 training_time = (time.time() - start_time)
 
@@ -92,14 +118,14 @@ training_time = (time.time() - start_time)
 # print(f1_score(y_test, y_pred, average='macro'))
 
 y_pred = model.predict(X_test)
-# print(classification_report(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 # print('Accuracy score:', accuracy_score(y_test, y_pred))
 testtime = time.time() - start_time
 test_report = classification_report(y_test, y_pred, output_dict=True)
 
 start_time = time.time()
 y_pred = model.predict(X_train)
-# print(classification_report(y_train, y_pred))
+print(classification_report(y_train, y_pred))
 # print('Accuracy score:', accuracy_score(y_train, y_pred))
 trainingtime = (time.time() - start_time + training_time)
 
@@ -109,8 +135,8 @@ train_report = classification_report(y_train, y_pred, output_dict=True)
 metric_list = ['precision', 'recall', 'f1-score']
 avg_list = ['micro avg', 'macro avg', 'weighted avg']
 
-test_str_output = "BNB_sentiment\t"+f"{size}\t"+"test\t"
-train_str_output = "BNB_sentiment\t"+f"{size}\t"+"train\t"
+test_str_output = "MNB_sentiment\t"+f"{size}\t"+"test\t"
+train_str_output = "MNB_sentiment\t"+f"{size}\t"+"train\t"
 
 for m in metric_list:
     for a in avg_list:
