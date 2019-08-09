@@ -19,43 +19,50 @@ df_test = pd.read_csv(sys.argv[2], sep='\t', quoting=csv.QUOTE_NONE, dtype=str,
 """ Functions for text pre-processing """
 
 
+def remove_mentions(sample):
+    """Remove mentions from tweets"""
+    return re.sub(r'@\w+', '', sample)
+
+
 def remove_URL(sample):
     """Remove URLs from a sample string"""
-    return re.sub(r"http\S+", " ", sample)
+    return re.sub(r'http.?://[^\s]+[\s]?', '', sample)
 
 
 def remove_punctuation(sample):
     """Remove punctuations from a sample string"""
-    return re.sub(r'[^\w\s\&\#\@\$\%\_]', '', sample)
+    return re.sub(r'[^\w\s]', ' ', sample)
 
 
 def remove_stopwords_NLTK(sample):
     """Remove stopwords using NLTK"""
-    stopWords = set(stopwords.words('english'))
-    words = [w for w in sample.split(' ') if len(w) >= 2]
-    filteredText = ""
-    for word in words:
-        if word not in stopWords:
-            filteredText = filteredText + word + " "
-    return filteredText.rstrip()
+    stopwords_list = stopwords.words('english')
+    words = sample.split()
+    new_words = [word for word in words if (
+        word not in stopwords_list) and len(word) > 1]
+    return " ".join(new_words)
+
+
+def remove_digits(sample):
+    return re.sub('\d+', '', sample)
 
 
 def porter_stem(sample):
     """Stemming"""
-    words = [w for w in sample.split(' ') if len(w) >= 2]
     ps = PorterStemmer()
-    stemmed_text = ""
-    for word in words:
-        stemmed_text = stemmed_text + ps.stem(word) + " "
-    return stemmed_text.rstrip()
+    words = sample.split()
+    stemmed_words = [ps.stem(word) for word in words]
+    return " ".join(stemmed_words)
 
 
 def myPreprocessor(sample):
     """Customized preprocessor"""
+    sample = remove_mentions(sample)
     sample = remove_URL(sample)
+    sample = remove_punctuation(sample)
+    sample = remove_digits(sample)
     sample = sample.lower()
     sample = remove_stopwords_NLTK(sample)
-    sample = remove_punctuation(sample)
     sample = porter_stem(sample)
     return sample
 
@@ -64,8 +71,8 @@ def myTokenizer(sample):
     """Customized tokenizer"""
     new_words = []
     words = sample.split(' ')
-    new_words = [word for word in words if len(word) >= 2 and not word.isdigit(
-    ) and not word.startswith('#aus') and not word.startswith('au')]
+    new_words = [word for word in words if len(
+        word) >= 2 and not word.startswith('au')]
     return new_words
 
 
@@ -86,11 +93,11 @@ for text in df_test.text:
     test_data = np.append(test_data, text)
 
 count = CountVectorizer(preprocessor=myPreprocessor, tokenizer=myTokenizer,
-                        max_features=818, ngram_range=(1, 2), min_df=0)
+                        max_features=700, ngram_range=(1, 1), min_df=4, max_df=0.2)
 X_train = count.fit_transform(train_data).toarray()
 X_test = count.transform(test_data).toarray()
 
-clf = MultinomialNB()
+clf = MultinomialNB(alpha=0.75)
 model = clf.fit(X_train, Y)
 
 
